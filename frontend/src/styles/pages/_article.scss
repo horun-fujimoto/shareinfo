@@ -10,7 +10,8 @@
 
   &:hover {
     border-color: $primary-light;
-    box-shadow: 0 2px 8px rgba($primary, 0.1);
+    box-shadow: 0 4px 12px rgba($primary, 0.12);
+    transform: translateY(-2px);
   }
 
   &__title {
@@ -170,6 +171,31 @@
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
+  }
+}
+
+.attachment-download {
+  align-items: center;
+  background: $background-light;
+  border: 1px solid $background-dark;
+  border-radius: $radius-sm;
+  color: $text-dark;
+  display: flex;
+  font-size: 13px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $background-primary;
+    border-color: $primary-light;
+    color: $primary;
+  }
+
+  &__size {
+    color: $text-light;
+    font-size: 12px;
   }
 }
 

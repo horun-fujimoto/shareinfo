@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop.tsx'
+import ToastContainer from './components/atoms/Toast.tsx'
 import { AuthProvider } from './hooks/AuthProvider.tsx'
 import { useAuth } from './hooks/useAuth.ts'
 import AppLayout from './components/layout/AppLayout.tsx'
@@ -80,6 +82,8 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
+      <ToastContainer />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

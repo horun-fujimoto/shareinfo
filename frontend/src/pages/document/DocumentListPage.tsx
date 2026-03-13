@@ -82,8 +82,10 @@ export default function DocumentListPage() {
                   {selected.attachments.map((a) => (
                     <a
                       key={a.id}
-                      href={`/uploads/${a.filePath}`}
+                      href={`/uploads/${a.filePath.replace(/\\/g, '/')}`}
                       download={a.fileName}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{ display: 'block', fontSize: '13px', color: '#e88da8', marginBottom: '0.25rem' }}
                     >
                       {a.fileName} ({Math.round(a.fileSize / 1024)}KB)

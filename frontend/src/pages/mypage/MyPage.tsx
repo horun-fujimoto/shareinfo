@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { apiFetch } from '../../api/client.ts'
 import type { ArticleSummary } from '../../types/index.ts'
 import { useAuth } from '../../hooks/useAuth.ts'
+import { useConfirm } from '../../hooks/useConfirm.tsx'
+import { showToast } from '../../components/atoms/Toast.tsx'
 import UserAvatar from '../../components/atoms/UserAvatar.tsx'
 import Button from '../../components/atoms/Button.tsx'
 import Badge from '../../components/atoms/Badge.tsx'
+import Pagination from '../../components/molecules/Pagination.tsx'
 import dayjs from 'dayjs'
 
 type Tab = 'liked' | 'bookmarked' | 'viewed' | 'my'
@@ -13,6 +16,7 @@ type Tab = 'liked' | 'bookmarked' | 'viewed' | 'my'
 export default function MyPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { confirm, ConfirmDialog } = useConfirm()
   const [activeTab, setActiveTab] = useState<Tab>('my')
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -74,9 +78,11 @@ export default function MyPage() {
   }
 
   const handleDelete = async (articleId: string) => {
-    if (!confirm('この記事を削除しますか？')) return
+    const ok = await confirm('この記事を削除しますか？')
+    if (!ok) return
     await apiFetch(`/articles/${articleId}`, { method: 'DELETE' })
     fetchData(activeTab, page)
+    showToast('記事を削除しました')
   }
 
   const handleToggleVisibility = async (articleId: string, currentStatus: string) => {
@@ -97,6 +103,7 @@ export default function MyPage() {
 
   return (
     <div>
+      <ConfirmDialog />
       <div className="page-header">
         <h1 className="page-header__title">マイページ</h1>
       </div>
@@ -198,15 +205,7 @@ export default function MyPage() {
           </div>
 
           {total > 10 && (
-            <div className="si-pagination" style={{ marginTop: '1rem' }}>
-              <button className="si-pagination__btn" disabled={page <= 1} onClick={() => fetchData(activeTab, page - 1)}>
-                前へ
-              </button>
-              <span style={{ fontSize: '13px' }}>{page} / {Math.ceil(total / 10)}</span>
-              <button className="si-pagination__btn" disabled={page >= Math.ceil(total / 10)} onClick={() => fetchData(activeTab, page + 1)}>
-                次へ
-              </button>
-            </div>
+            <Pagination page={page} pageSize={10} total={total} onPageChange={(p) => fetchData(activeTab, p)} />
           )}
         </>
       )}

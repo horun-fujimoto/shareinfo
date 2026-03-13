@@ -241,7 +241,7 @@ export default async function articleRoutes(app: FastifyInstance) {
     Body: { title: string; content: string; status?: string; tagIds?: string[] }
   }>('/articles', { preHandler: app.auth.requireUser }, async (req) => {
     const authedUser = requireAuthedUser(req)
-    const { title, content, status, tagIds } = validate(createArticleSchema, req.body)
+    const { title, content, status, tagIds, attachments } = validate(createArticleSchema, req.body)
 
     const articleStatus = status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'
 
@@ -254,6 +254,17 @@ export default async function articleRoutes(app: FastifyInstance) {
         publishedAt: articleStatus === 'PUBLISHED' ? new Date() : null,
         tags: tagIds?.length
           ? { create: tagIds.map((tagId) => ({ tagId })) }
+          : undefined,
+        attachments: attachments?.length
+          ? {
+              create: attachments.map((a) => ({
+                fileName: a.fileName,
+                filePath: a.filePath,
+                fileSize: a.fileSize,
+                mimeType: a.mimeType,
+                isInlineImage: false,
+              })),
+            }
           : undefined,
       },
       select: {
@@ -281,7 +292,7 @@ export default async function articleRoutes(app: FastifyInstance) {
     if (!existing) throw Err.notFound('ARTICLE_NOT_FOUND')
     if (existing.authorId !== authedUser.id) throw Err.forbidden('NOT_AUTHOR')
 
-    const { title, content, status, tagIds } = validate(updateArticleSchema, req.body)
+    const { title, content, status, tagIds, attachments } = validate(updateArticleSchema, req.body)
 
     const data: Record<string, unknown> = {}
     if (title !== undefined) data.title = title.trim()
@@ -290,6 +301,23 @@ export default async function articleRoutes(app: FastifyInstance) {
       data.status = status
       if (status === 'PUBLISHED' && existing.status !== 'PUBLISHED') {
         data.publishedAt = new Date()
+      }
+    }
+
+    // 添付ファイルの更新
+    if (attachments !== undefined) {
+      await app.prisma.articleAttachment.deleteMany({ where: { articleId: req.params.id, isInlineImage: false } })
+      if (attachments.length > 0) {
+        await app.prisma.articleAttachment.createMany({
+          data: attachments.map((a) => ({
+            articleId: req.params.id,
+            fileName: a.fileName,
+            filePath: a.filePath,
+            fileSize: a.fileSize,
+            mimeType: a.mimeType,
+            isInlineImage: false,
+          })),
+        })
       }
     }
 

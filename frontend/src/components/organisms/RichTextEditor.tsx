@@ -1,3 +1,4 @@
+import { showToast } from '../atoms/Toast.tsx'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
@@ -76,9 +77,9 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         ok: boolean
         file: { filePath: string }
       }>('/upload', formData)
-      editor.chain().focus().setImage({ src: `/uploads/${res.file.filePath}` }).run()
+      editor.chain().focus().setImage({ src: `/uploads/${res.file.filePath.replace(/\\/g, '/')}` }).run()
     } catch {
-      alert('画像のアップロードに失敗しました')
+      showToast('画像のアップロードに失敗しました', 'error')
     }
 
     // reset input

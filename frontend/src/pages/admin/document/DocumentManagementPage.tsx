@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiFetch } from '../../../api/client.ts'
+import { useConfirm } from '../../../hooks/useConfirm.tsx'
+import { showToast } from '../../../components/atoms/Toast.tsx'
 import Button from '../../../components/atoms/Button.tsx'
 import FormField from '../../../components/atoms/FormField.tsx'
 import RichTextEditor from '../../../components/organisms/RichTextEditor.tsx'
@@ -27,6 +29,7 @@ export default function DocumentManagementPage() {
   const [editPublished, setEditPublished] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -63,7 +66,7 @@ export default function DocumentManagementPage() {
       setEditPublished(res.document.published)
       setShowForm(true)
     } catch {
-      alert('ドキュメントの読み込みに失敗しました')
+      showToast('ドキュメントの読み込みに失敗しました', 'error')
     }
   }
 
@@ -84,17 +87,20 @@ export default function DocumentManagementPage() {
       }
       setShowForm(false)
       fetchDocuments()
+      showToast(editId ? 'ドキュメントを更新しました' : 'ドキュメントを作成しました')
     } catch {
-      alert('保存に失敗しました')
+      showToast('保存に失敗しました', 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async (docId: string) => {
-    if (!confirm('このドキュメントを削除しますか？')) return
+    const ok = await confirm('このドキュメントを削除しますか？')
+    if (!ok) return
     await apiFetch(`/admin/documents/${docId}`, { method: 'DELETE' })
     fetchDocuments()
+    showToast('ドキュメントを削除しました')
   }
 
   const handleTogglePublish = async (doc: DocSummary) => {
@@ -168,6 +174,7 @@ export default function DocumentManagementPage() {
 
   return (
     <div>
+      <ConfirmDialog />
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 className="page-header__title">ドキュメント管理</h1>
         <Button onClick={handleNew}>新規作成</Button>

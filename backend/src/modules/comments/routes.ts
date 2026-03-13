@@ -86,6 +86,49 @@ export default async function commentRoutes(app: FastifyInstance) {
     }
   )
 
+  // コメント編集
+  app.patch<{ Params: { articleId: string; commentId: string }; Body: { content: string } }>(
+    '/articles/:articleId/comments/:commentId',
+    { preHandler: app.auth.requireUser },
+    async (req) => {
+      const authedUser = requireAuthedUser(req)
+      const { content } = validate(createCommentSchema, req.body)
+
+      const comment = await app.prisma.comment.findUnique({
+        where: { id: req.params.commentId },
+        select: { authorId: true },
+      })
+
+      if (!comment) throw Err.notFound('COMMENT_NOT_FOUND')
+      if (comment.authorId !== authedUser.id) {
+        throw Err.forbidden('NOT_AUTHOR')
+      }
+
+      const updated = await app.prisma.comment.update({
+        where: { id: req.params.commentId },
+        data: { content: content.trim() },
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: { id: true, userId: true, name: true, imageUrl: true },
+          },
+        },
+      })
+
+      return {
+        ok: true,
+        comment: {
+          ...updated,
+          createdAt: updated.createdAt.toISOString(),
+          updatedAt: updated.updatedAt.toISOString(),
+        },
+      }
+    }
+  )
+
   // コメント削除
   app.delete<{ Params: { articleId: string; commentId: string } }>(
     '/articles/:articleId/comments/:commentId',

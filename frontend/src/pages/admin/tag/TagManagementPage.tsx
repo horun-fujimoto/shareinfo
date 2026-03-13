@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiFetch } from '../../../api/client.ts'
 import type { Tag } from '../../../types/index.ts'
+import { useConfirm } from '../../../hooks/useConfirm.tsx'
+import { showToast } from '../../../components/atoms/Toast.tsx'
 import Button from '../../../components/atoms/Button.tsx'
 import FormField from '../../../components/atoms/FormField.tsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,6 +16,7 @@ export default function TagManagementPage() {
   const [editColor, setEditColor] = useState('#e91e8c')
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState('#e91e8c')
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const fetchTags = useCallback(async () => {
     try {
@@ -37,6 +40,7 @@ export default function TagManagementPage() {
     setNewName('')
     setNewColor('#e91e8c')
     fetchTags()
+    showToast('タグを追加しました')
   }
 
   const handleUpdate = async (id: string) => {
@@ -46,12 +50,15 @@ export default function TagManagementPage() {
     })
     setEditingId(null)
     fetchTags()
+    showToast('タグを更新しました')
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('このタグを削除しますか？')) return
+    const ok = await confirm('このタグを削除しますか？')
+    if (!ok) return
     await apiFetch(`/admin/tags/${id}`, { method: 'DELETE' })
     fetchTags()
+    showToast('タグを削除しました')
   }
 
   const startEdit = (tag: Tag) => {
@@ -66,6 +73,7 @@ export default function TagManagementPage() {
 
   return (
     <div>
+      <ConfirmDialog />
       <div className="page-header">
         <h1 className="page-header__title">タグ管理</h1>
       </div>

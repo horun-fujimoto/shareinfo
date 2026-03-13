@@ -6,6 +6,8 @@ import Badge from '../../../components/atoms/Badge.tsx'
 import FormField from '../../../components/atoms/FormField.tsx'
 import dayjs from 'dayjs'
 import Pagination from '../../../components/molecules/Pagination.tsx'
+import { useConfirm } from '../../../hooks/useConfirm.tsx'
+import { showToast } from '../../../components/atoms/Toast.tsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPencil, faTrashCan, faLock, faUnlock, faPlus } from '@fortawesome/free-solid-svg-icons'
 import Modal from '../../../components/atoms/Modal.tsx'
@@ -27,6 +29,7 @@ export default function UserListPage() {
   const [formRole, setFormRole] = useState('USER')
   const [formPassword, setFormPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const fetchUsers = useCallback(async (p = 1) => {
     setLoading(true)
@@ -94,17 +97,20 @@ export default function UserListPage() {
       }
       setModalOpen(false)
       fetchUsers(page)
+      showToast(modalMode === 'create' ? 'ユーザーを作成しました' : 'ユーザーを更新しました')
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : '保存に失敗しました')
+      showToast(e instanceof Error ? e.message : '保存に失敗しました', 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async (u: AdminUser) => {
-    if (!confirm(`${u.name}を削除しますか？`)) return
+    const ok = await confirm(`${u.name}を削除しますか？`)
+    if (!ok) return
     await apiFetch(`/admin/users/${u.id}`, { method: 'DELETE' })
     fetchUsers(page)
+    showToast(`${u.name}を削除しました`)
   }
 
   const handleUnlock = async (u: AdminUser) => {
@@ -113,9 +119,10 @@ export default function UserListPage() {
   }
 
   const handleResetPassword = async (u: AdminUser) => {
-    if (!confirm(`${u.name}のパスワードをリセットしますか？`)) return
+    const ok = await confirm(`${u.name}のパスワードをリセットしますか？`)
+    if (!ok) return
     await apiFetch(`/admin/users/${u.id}/reset-password`, { method: 'POST' })
-    alert('パスワードをリセットしました。初期パスワード: password123')
+    showToast('パスワードをリセットしました。次回ログイン時に変更が必要です')
   }
 
   const handleToggleActive = async (u: AdminUser) => {
@@ -129,6 +136,7 @@ export default function UserListPage() {
 
   return (
     <div>
+      <ConfirmDialog />
       <div className="page-header">
         <h1 className="page-header__title">ユーザー管理</h1>
         <Button onClick={openCreate}>

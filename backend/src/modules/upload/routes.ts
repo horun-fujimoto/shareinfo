@@ -91,8 +91,8 @@ export default async function uploadRoutes(app: FastifyInstance) {
 
     fs.writeFileSync(filePath, Buffer.concat(chunks))
 
-    // 相対パスを返す
-    const relativePath = path.join(dateDir, uniqueName)
+    // 相対パスを返す（URLに使うのでスラッシュ区切りに統一）
+    const relativePath = `${dateDir}/${uniqueName}`
 
     return {
       ok: true,
@@ -141,7 +141,7 @@ export default async function uploadRoutes(app: FastifyInstance) {
 
       if (totalSize <= MAX_FILE_SIZE) {
         fs.writeFileSync(filePath, Buffer.concat(chunks))
-        const relativePath = path.join(dateDir, uniqueName)
+        const relativePath = `${dateDir}/${uniqueName}`
 
         results.push({
           fileName: data.filename,
