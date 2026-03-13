@@ -1,0 +1,17 @@
+@use 'variables' as *;
+
+// Bootstrap のテーマカラーを上書き
+$theme-colors: (
+  'primary': $primary,
+  'secondary': $secondary,
+  'success': $success,
+  'warning': $warning,
+  'danger': $error,
+  'info': $mint,
+  'light': $background-light,
+  'dark': $text-dark,
+) !default;
+
+// Bootstrap の font-size-base は rem 単位が必要
+$font-size-base: 0.875rem;
+$navbar-brand-height: 1.5rem;

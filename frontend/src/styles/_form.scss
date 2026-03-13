@@ -1,0 +1,56 @@
+@use 'variables' as *;
+
+.si-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  &__label {
+    color: $text-dark;
+    font-size: $font-size-sm;
+    font-weight: 600;
+  }
+
+  &__input,
+  &__select,
+  &__textarea {
+    background: $white;
+    border: 1px solid $secondary-light;
+    border-radius: $radius-sm;
+    color: $text-dark;
+    font-family: $font-family-base;
+    font-size: $font-size-base;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease;
+    width: 100%;
+
+    &:focus {
+      border-color: $primary;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+
+    &--invalid {
+      border-color: $error;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($error, 0.15);
+      }
+    }
+  }
+
+  &__textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  &__error {
+    color: $error;
+    font-size: $font-size-sm;
+  }
+}
+
+.si-form {
+  display: grid;
+  gap: 0.9rem;
+}

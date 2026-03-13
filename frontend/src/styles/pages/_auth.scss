@@ -1,0 +1,72 @@
+@use '../variables' as *;
+
+.auth-page {
+  align-items: center;
+  background: $background-light;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.auth-card {
+  background: $white;
+  border: 1px solid $background-dark;
+  border-radius: 0.8rem;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 6%);
+  max-width: 560px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.auth-card .form-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.auth-card .form-actions .si-btn {
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  width: auto;
+}
+
+.auth-card__header {
+  align-items: center;
+  border-bottom: 1px solid $background-dark;
+  display: flex;
+  gap: 0.6rem;
+  padding: 1.1rem 1.25rem;
+
+  .auth-card__title {
+    color: $primary;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .auth-card__desc {
+    color: $primary-dark;
+    font-size: 0.9rem;
+    margin-left: auto;
+  }
+}
+
+.auth-card__body {
+  padding: 1.25rem;
+}
+
+@media (width <= 480px) {
+  .auth-card .form-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .auth-card .form-actions .si-btn {
+    min-width: 0;
+    width: 100%;
+  }
+}

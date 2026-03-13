@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /mnt/c/Users/sys04/Documents/code/claude_code/backend && npm install 2>&1 | tail -5)",
+      "Bash(cd /mnt/c/Users/sys04/Documents/code/claude_code/frontend && npm install 2>&1 | tail -5)",
+      "Bash(npx tsc:*)",
+      "Bash(npx playwright:*)",
+      "Bash(curl -s http://localhost:8000/ 2>&1 | head -30)",
+      "Bash(cd /mnt/c/Users/sys04/Documents/code/claude_code/backend && npm install @fastify/rate-limit 2>&1 | tail -3)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "au-db",
+    "kobetsuMCP"
+  ]
+}

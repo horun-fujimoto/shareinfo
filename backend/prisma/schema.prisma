@@ -1,0 +1,300 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./generated"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
+}
+
+// ------------------
+// --- Enums ---
+// ------------------
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+}
+
+// ------------------
+// --- User ---
+// ------------------
+
+model User {
+  id               String        @id @default(cuid())
+  userId           String        @unique
+  passwordHash     String
+  name             String
+  email            String?
+  bio              String?
+  role             Role          @default(USER)
+  status           AccountStatus @default(ACTIVE)
+  imageUrl         String?
+  mustChangePassword Boolean     @default(true)
+  loginFailCount   Int           @default(0)
+  lockedAt         DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  sessions         Session[]
+  articles         Article[]
+  comments         Comment[]
+  likes            Like[]
+  bookmarks        Bookmark[]
+  viewHistories    ViewHistory[]
+  documents        Document[]
+  notifications    Notification[] @relation("NotificationRecipient")
+  notificationsSent Notification[] @relation("NotificationActor")
+
+  @@index([userId])
+  @@index([role])
+}
+
+// ------------------
+// --- Session ---
+// ------------------
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ------------------
+// --- Tag ---
+// ------------------
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  color     String       @default("#e91e8c")
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  articles  ArticleTag[]
+
+  @@index([name])
+}
+
+// ------------------
+// --- Article ---
+// ------------------
+
+model Article {
+  id          String        @id @default(cuid())
+  title       String
+  content     String
+  status      ArticleStatus @default(DRAFT)
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likeCount   Int           @default(0)
+  viewCount   Int           @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tags          ArticleTag[]
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+  viewHistories ViewHistory[]
+  attachments   ArticleAttachment[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([likeCount])
+}
+
+model ArticleTag {
+  id        String @id @default(cuid())
+  articleId String
+  tagId     String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, tagId])
+  @@index([articleId])
+  @@index([tagId])
+}
+
+model ArticleAttachment {
+  id           String  @id @default(cuid())
+  articleId    String
+  article      Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  fileName     String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  isInlineImage Boolean @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([articleId])
+}
+
+// ------------------
+// --- Comment ---
+// ------------------
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([authorId])
+}
+
+// ------------------
+// --- Like ---
+// ------------------
+
+model Like {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+}
+
+// ------------------
+// --- Bookmark ---
+// ------------------
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+}
+
+// ------------------
+// --- ViewHistory ---
+// ------------------
+
+model ViewHistory {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+// ------------------
+// --- Document (管理者用) ---
+// ------------------
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  sortOrder   Int      @default(0)
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attachments DocumentAttachment[]
+
+  @@index([authorId])
+  @@index([sortOrder])
+}
+
+model DocumentAttachment {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  fileName     String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  isInlineImage Boolean @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([documentId])
+}
+
+// ------------------
+// --- Notification ---
+// ------------------
+
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  recipientId String
+  recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actorId     String
+  actor       User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  articleId   String?
+  commentId   String?
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@index([recipientId])
+  @@index([recipientId, isRead])
+  @@index([createdAt])
+}
+
+// ------------------
+// --- UserSettings ---
+// ------------------
+
+model UserSettings {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  notifyOnLike          Boolean @default(true)
+  notifyOnComment       Boolean @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+}

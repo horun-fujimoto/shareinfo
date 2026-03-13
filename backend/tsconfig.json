@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@prisma/*": ["prisma/*"]
+    }
+  },
+  "include": ["src", "prisma"],
+  "exclude": ["node_modules", "dist"]
+}

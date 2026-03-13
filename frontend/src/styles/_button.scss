@@ -1,0 +1,95 @@
+@use 'variables' as *;
+
+.si-btn {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: $font-family-button;
+  font-size: $font-size-base;
+  font-weight: 600;
+  gap: 0.4rem;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  padding: 0.45rem 1rem;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &--primary {
+    background-color: $primary;
+    border-color: $primary;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      background-color: $primary-dark;
+      border-color: $primary-dark;
+    }
+  }
+
+  &--secondary {
+    background-color: $secondary;
+    border-color: $secondary;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      background-color: $secondary-dark;
+      border-color: $secondary-dark;
+    }
+  }
+
+  &--outline-primary {
+    background-color: transparent;
+    border-color: $primary;
+    color: $primary;
+
+    &:hover:not(:disabled) {
+      background-color: rgba($primary, 0.1);
+    }
+  }
+
+  &--outline-secondary {
+    background-color: transparent;
+    border-color: $secondary-light;
+    color: $secondary;
+
+    &:hover:not(:disabled) {
+      background-color: rgba($secondary, 0.08);
+    }
+  }
+
+  &--outline-error {
+    background-color: transparent;
+    border-color: $error;
+    color: $error;
+
+    &:hover:not(:disabled) {
+      background-color: rgba($error, 0.08);
+    }
+  }
+
+  &--sm {
+    font-size: $font-size-sm;
+    padding: 0.25rem 0.6rem;
+  }
+
+  &--icon {
+    background: none;
+    border: none;
+    border-radius: $radius-sm;
+    color: $secondary;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+
+    &:hover:not(:disabled) {
+      background-color: $background-dark;
+      color: $primary;
+    }
+  }
+}

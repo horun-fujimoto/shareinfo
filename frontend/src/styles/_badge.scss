@@ -1,0 +1,37 @@
+@use 'variables' as *;
+
+.si-badge {
+  align-items: center;
+  border-radius: $radius-xl;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 0.25rem;
+  padding: 0.15rem 0.55rem;
+  white-space: nowrap;
+
+  &--primary {
+    background-color: $background-primary;
+    color: $primary-dark;
+  }
+
+  &--success {
+    background-color: $background-success;
+    color: $success-dark;
+  }
+
+  &--warning {
+    background-color: $background-warning;
+    color: $warning-dark;
+  }
+
+  &--error {
+    background-color: $background-error;
+    color: $error-dark;
+  }
+
+  &--secondary {
+    background-color: $inactive-light;
+    color: $secondary-dark;
+  }
+}

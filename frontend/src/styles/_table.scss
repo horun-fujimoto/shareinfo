@@ -1,0 +1,28 @@
+@use 'variables' as *;
+
+.si-table {
+  background: $white;
+  border-collapse: collapse;
+  font-size: $font-size-base;
+  width: 100%;
+
+  th,
+  td {
+    border-bottom: 1px solid $background-dark;
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: $background-primary;
+    color: $text-dark;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:hover {
+    background-color: rgba($primary, 0.04);
+  }
+}
