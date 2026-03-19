@@ -84,7 +84,10 @@ export default function HomePage() {
                 <h3 className="article-card__title">{article.title}</h3>
 
                 <div className="article-card__meta">
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span
+                    className="article-card__author"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/users/${article.author.id}`) }}
+                  >
                     <UserAvatar
                       name={article.author.name}
                       imageUrl={article.author.imageUrl}

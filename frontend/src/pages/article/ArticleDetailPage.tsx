@@ -158,7 +158,10 @@ export default function ArticleDetailPage() {
         <h1 className="article-detail__title">{article.title}</h1>
 
         <div className="article-detail__meta">
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span
+            className="article-card__author"
+            onClick={() => navigate(`/users/${article.author.id}`)}
+          >
             <UserAvatar name={article.author.name} imageUrl={article.author.imageUrl} size={28} />
             {article.author.name}
           </span>

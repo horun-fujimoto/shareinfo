@@ -47,6 +47,18 @@
     gap: 0.3rem;
     margin-bottom: 0.5rem;
   }
+
+  &__author {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 0.3rem;
+    transition: color 0.12s ease;
+
+    &:hover {
+      color: $primary;
+    }
+  }
 }
 
 .article-tag {

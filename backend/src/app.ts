@@ -20,6 +20,7 @@ import adminUserRoutes from './modules/admin/users/routes.js'
 import viewHistoryRoutes from './modules/view-history/routes.js'
 import uploadRoutes from './modules/upload/routes.js'
 import settingsRoutes from './modules/settings/routes.js'
+import userRoutes from './modules/users/routes.js'
 import { cfg } from './config/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -84,6 +85,7 @@ export async function buildApp() {
   await app.register(viewHistoryRoutes)
   await app.register(uploadRoutes)
   await app.register(settingsRoutes)
+  await app.register(userRoutes)
 
   app.get('/', async () => ({ ok: true, service: 'shareinfo-backend', time: new Date().toISOString() }))
   app.get('/health', async () => ({ status: 'ok' }))

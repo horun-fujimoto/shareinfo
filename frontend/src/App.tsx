@@ -18,6 +18,7 @@ import UserListPage from './pages/admin/user/UserListPage.tsx'
 import TagManagementPage from './pages/admin/tag/TagManagementPage.tsx'
 import DocumentManagementPage from './pages/admin/document/DocumentManagementPage.tsx'
 import ChangePasswordPage from './pages/ChangePasswordPage.tsx'
+import UserProfilePage from './pages/user/UserProfilePage.tsx'
 import type { ReactNode } from 'react'
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -64,6 +65,7 @@ function AppRoutes() {
       <Route path="/articles/new" element={<ProtectedRoute><ArticleCreatePage /></ProtectedRoute>} />
       <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetailPage /></ProtectedRoute>} />
       <Route path="/articles/:id/edit" element={<ProtectedRoute><ArticleCreatePage /></ProtectedRoute>} />
+      <Route path="/users/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
       <Route path="/documents" element={<ProtectedRoute><DocumentListPage /></ProtectedRoute>} />
       <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
