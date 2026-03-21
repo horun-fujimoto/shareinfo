@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../api/client.ts'
 import type { ArticleSummary, Tag } from '../types/index.ts'
 import UserAvatar from '../components/atoms/UserAvatar.tsx'
@@ -11,29 +11,36 @@ import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
 export default function SearchPage() {
   const navigate = useNavigate()
-  const [keyword, setKeyword] = useState('')
-  const [selectedTag, setSelectedTag] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // URLからの状態復元
+  const urlKeyword = searchParams.get('keyword') || ''
+  const urlTag = searchParams.get('tag') || ''
+  const urlPage = Math.max(1, Number(searchParams.get('page')) || 1)
+  const hasSearched = searchParams.has('keyword') || searchParams.has('tag')
+
+  const [keyword, setKeyword] = useState(urlKeyword)
+  const [selectedTag, setSelectedTag] = useState(urlTag)
   const [tags, setTags] = useState<Tag[]>([])
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [searched, setSearched] = useState(false)
 
   useEffect(() => {
     apiFetch<{ ok: boolean; tags: Tag[] }>('/tags')
       .then((res) => setTags(res.tags))
-      .catch(() => { /* タグ取得失敗は非致命的 */ })
+      .catch(() => {})
   }, [])
 
-  const search = useCallback(async (p = 1) => {
+  // URL変更時にAPIフェッチ
+  const fetchResults = useCallback(async () => {
+    if (!hasSearched) return
     setLoading(true)
-    setSearched(true)
     const params = new URLSearchParams()
-    params.set('page', String(p))
+    params.set('page', String(urlPage))
     params.set('pageSize', '10')
-    if (keyword.trim()) params.set('keyword', keyword.trim())
-    if (selectedTag) params.set('tag', selectedTag)
+    if (urlKeyword) params.set('keyword', urlKeyword)
+    if (urlTag) params.set('tag', urlTag)
 
     try {
       const res = await apiFetch<{
@@ -43,14 +50,40 @@ export default function SearchPage() {
       }>(`/articles?${params}`)
       setArticles(res.articles)
       setTotal(res.total)
-      setPage(p)
     } catch {
       setArticles([])
       setTotal(0)
     } finally {
       setLoading(false)
     }
-  }, [keyword, selectedTag])
+  }, [urlKeyword, urlTag, urlPage, hasSearched])
+
+  useEffect(() => {
+    fetchResults()
+  }, [fetchResults])
+
+  // URLパラメータ同期（入力フィールドの値をURLに反映しない→検索ボタン押下時のみ反映）
+  const handleSearch = (p = 1) => {
+    const params: Record<string, string> = {}
+    if (keyword.trim()) params.keyword = keyword.trim()
+    if (selectedTag) params.tag = selectedTag
+    if (p > 1) params.page = String(p)
+    setSearchParams(params)
+  }
+
+  const handlePageChange = (p: number) => {
+    const params: Record<string, string> = {}
+    if (urlKeyword) params.keyword = urlKeyword
+    if (urlTag) params.tag = urlTag
+    if (p > 1) params.page = String(p)
+    setSearchParams(params)
+  }
+
+  // URLパラメータが変わったら入力フィールドも同期（戻る時）
+  useEffect(() => {
+    setKeyword(urlKeyword)
+    setSelectedTag(urlTag)
+  }, [urlKeyword, urlTag])
 
   return (
     <div>
@@ -71,7 +104,7 @@ export default function SearchPage() {
                 placeholder="タイトル・本文を検索..."
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && search(1)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(1)}
               />
             </div>
           </div>
@@ -92,13 +125,13 @@ export default function SearchPage() {
             </select>
           </div>
 
-          <Button onClick={() => search(1)}>検索</Button>
+          <Button onClick={() => handleSearch(1)}>検索</Button>
         </div>
       </div>
 
       {loading ? (
         <div className="text-center" style={{ padding: '2rem' }}>検索中...</div>
-      ) : searched ? (
+      ) : hasSearched ? (
         <>
           <div style={{ fontSize: '13px', color: '#616161', marginBottom: '0.5rem' }}>
             {total}件の記事が見つかりました
@@ -114,7 +147,7 @@ export default function SearchPage() {
                 <div
                   key={article.id}
                   className="article-card"
-                  onClick={() => navigate(`/articles/${article.id}`)}
+                  onClick={() => navigate(`/articles/${article.id}`, { state: { fromLabel: '検索結果に戻る' } })}
                 >
                   <div className="article-card__tags">
                     {article.tags.map((tag) => (
@@ -146,7 +179,7 @@ export default function SearchPage() {
           )}
 
           {total > 10 && (
-            <Pagination page={page} pageSize={10} total={total} onPageChange={search} />
+            <Pagination page={urlPage} pageSize={10} total={total} onPageChange={handlePageChange} />
           )}
         </>
       ) : null}

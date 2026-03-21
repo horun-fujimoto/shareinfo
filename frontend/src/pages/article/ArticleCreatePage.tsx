@@ -264,6 +264,9 @@ export default function ArticleCreatePage() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <Button variant="outline-secondary" onClick={() => navigate(-1)}>
+              キャンセル
+            </Button>
             <Button
               variant="outline-secondary"
               onClick={() => handleSubmit('DRAFT')}

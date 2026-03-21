@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { apiFetch } from '../../api/client.ts'
 import type { ArticleDetail, Comment as CommentType } from '../../types/index.ts'
 import { useAuth } from '../../hooks/useAuth.ts'
@@ -9,12 +9,14 @@ import { showToast } from '../../components/atoms/Toast.tsx'
 import UserAvatar from '../../components/atoms/UserAvatar.tsx'
 import Button from '../../components/atoms/Button.tsx'
 import dayjs from 'dayjs'
+import { ImageLightbox, useImageLightbox } from '../../components/ImageLightbox.tsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHeart, faBookmark, faTrash, faPencil, faCheck, faXmark, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faHeart, faBookmark, faTrash, faPencil, faCheck, faXmark, faDownload, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 
 export default function ArticleDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const { confirm, ConfirmDialog } = useConfirm()
   const [article, setArticle] = useState<ArticleDetail | null>(null)
@@ -22,6 +24,9 @@ export default function ArticleDetailPage() {
   const [commentText, setCommentText] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+
+  // 画像ライトボックス
+  const { contentRef, lightboxSrc, closeLightbox } = useImageLightbox()
 
   // コメント編集
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
@@ -139,9 +144,26 @@ export default function ArticleDetailPage() {
   const sanitizedContent = sanitizeHtml(article.content)
   const nonInlineAttachments = article.attachments.filter((a) => !a.isInlineImage)
 
+  const fromLabel = (location.state as { fromLabel?: string })?.fromLabel
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
   return (
     <div>
       <ConfirmDialog />
+      <button
+        className="article-detail__back"
+        onClick={handleBack}
+      >
+        <FontAwesomeIcon icon={faArrowLeft} />
+        {fromLabel || '一覧に戻る'}
+      </button>
       <div className="article-detail">
         <div className="article-card__tags" style={{ marginBottom: '0.75rem' }}>
           {article.tags.map((tag) => (
@@ -180,9 +202,11 @@ export default function ArticleDetailPage() {
         </div>
 
         <div
+          ref={contentRef}
           className="article-detail__content"
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
+        <ImageLightbox src={lightboxSrc} onClose={closeLightbox} />
 
         {/* 添付ファイル */}
         {nonInlineAttachments.length > 0 && (

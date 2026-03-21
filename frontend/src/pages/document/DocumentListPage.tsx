@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../../api/client.ts'
 import { sanitizeHtml } from '../../utils/sanitize.ts'
+import { ImageLightbox, useImageLightbox } from '../../components/ImageLightbox.tsx'
 import type { Document } from '../../types/index.ts'
 import dayjs from 'dayjs'
 
@@ -8,6 +9,8 @@ export default function DocumentListPage() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [selected, setSelected] = useState<Document | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const { contentRef, lightboxSrc, closeLightbox } = useImageLightbox()
 
   useEffect(() => {
     apiFetch<{ ok: boolean; documents: Document[] }>('/documents')
@@ -21,12 +24,6 @@ export default function DocumentListPage() {
 
   if (loading) {
     return <div className="text-center" style={{ padding: '2rem' }}>読み込み中...</div>
-  }
-
-  // サニタイズしたHTMLを安全にレンダリング
-  const renderSanitizedContent = (html: string) => {
-    const cleanHtml = sanitizeHtml(html)
-    return <div className="article-detail__content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
   }
 
   return (
@@ -74,7 +71,12 @@ export default function DocumentListPage() {
                 最終更新: {dayjs(selected.updatedAt).format('YYYY/MM/DD HH:mm')}
                 {' | '}作成者: {selected.author.name}
               </div>
-              {renderSanitizedContent(selected.content)}
+              <div
+                ref={contentRef}
+                className="article-detail__content"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(selected.content) }}
+              />
+              <ImageLightbox src={lightboxSrc} onClose={closeLightbox} />
 
               {selected.attachments.length > 0 && (
                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid #f0e4e8', paddingTop: '1rem' }}>

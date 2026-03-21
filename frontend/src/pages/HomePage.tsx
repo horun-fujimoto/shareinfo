@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../api/client.ts'
 import type { ArticleSummary } from '../types/index.ts'
 import UserAvatar from '../components/atoms/UserAvatar.tsx'
@@ -10,13 +10,15 @@ const PAGE_SIZE = 10
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Math.max(1, Number(searchParams.get('page')) || 1)
+
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
 
-  const fetchArticles = useCallback(async (p = 1) => {
+  const fetchArticles = useCallback(async (p: number) => {
     setLoading(true)
     setError('')
     try {
@@ -27,7 +29,6 @@ export default function HomePage() {
       }>(`/articles?page=${p}&pageSize=${PAGE_SIZE}&sort=latest`)
       setArticles(res.articles)
       setTotal(res.total)
-      setPage(p)
     } catch {
       setError('記事の取得に失敗しました。')
     } finally {
@@ -36,8 +37,12 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    fetchArticles(1)
-  }, [fetchArticles])
+    fetchArticles(currentPage)
+  }, [fetchArticles, currentPage])
+
+  const handlePageChange = (p: number) => {
+    setSearchParams(p > 1 ? { page: String(p) } : {})
+  }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
@@ -64,7 +69,7 @@ export default function HomePage() {
               <div
                 key={article.id}
                 className="article-card"
-                onClick={() => navigate(`/articles/${article.id}`)}
+                onClick={() => navigate(`/articles/${article.id}`, { state: { fromLabel: '新着記事に戻る' } })}
               >
                 <div className="article-card__tags">
                   {article.tags.map((tag) => (
@@ -104,7 +109,7 @@ export default function HomePage() {
           </div>
 
           {totalPages > 1 && (
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={fetchArticles} />
+            <Pagination page={currentPage} pageSize={PAGE_SIZE} total={total} onPageChange={handlePageChange} />
           )}
         </>
       )}

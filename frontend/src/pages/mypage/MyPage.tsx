@@ -150,7 +150,7 @@ export default function MyPage() {
               >
                 <div
                   style={{ flex: 1, cursor: 'pointer' }}
-                  onClick={() => navigate(`/articles/${article.id}`)}
+                  onClick={() => navigate(`/articles/${article.id}`, { state: { fromLabel: 'マイページに戻る' } })}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
                     <span style={{ fontWeight: 600, fontSize: '14px' }}>{article.title}</span>

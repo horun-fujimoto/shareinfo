@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../../api/client.ts'
 import type { ArticleSummary } from '../../types/index.ts'
 import { useAuth } from '../../hooks/useAuth.ts'
@@ -25,9 +25,11 @@ export default function UserProfilePage() {
   const { user: currentUser } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Math.max(1, Number(searchParams.get('page')) || 1)
+
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
 
   // 自分のプロフィールならマイページにリダイレクト
@@ -45,7 +47,7 @@ export default function UserProfilePage() {
       .finally(() => setLoading(false))
   }, [id, navigate])
 
-  const fetchArticles = useCallback(async (p = 1) => {
+  const fetchArticles = useCallback(async (p: number) => {
     if (!id) return
     try {
       const res = await apiFetch<{
@@ -55,13 +57,16 @@ export default function UserProfilePage() {
       }>(`/articles?page=${p}&pageSize=${PAGE_SIZE}&authorId=${id}`)
       setArticles(res.articles)
       setTotal(res.total)
-      setPage(p)
     } catch { /* ignore */ }
   }, [id])
 
   useEffect(() => {
-    fetchArticles(1)
-  }, [fetchArticles])
+    fetchArticles(currentPage)
+  }, [fetchArticles, currentPage])
+
+  const handlePageChange = (p: number) => {
+    setSearchParams(p > 1 ? { page: String(p) } : {})
+  }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
@@ -111,7 +116,7 @@ export default function UserProfilePage() {
               <div
                 key={article.id}
                 className="article-card"
-                onClick={() => navigate(`/articles/${article.id}`)}
+                onClick={() => navigate(`/articles/${article.id}`, { state: { fromLabel: `${profile.name} の記事に戻る` } })}
               >
                 <div className="article-card__tags">
                   {article.tags.map((tag) => (
@@ -135,7 +140,7 @@ export default function UserProfilePage() {
           </div>
 
           {totalPages > 1 && (
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={fetchArticles} />
+            <Pagination page={currentPage} pageSize={PAGE_SIZE} total={total} onPageChange={handlePageChange} />
           )}
         </>
       )}

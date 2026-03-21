@@ -41,7 +41,7 @@ export const createArticleSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(30, 'タイトルは30文字以内です'),
   content: z.string().default(''),
   status: z.enum(['DRAFT', 'PUBLISHED']).optional().default('DRAFT'),
-  tagIds: z.array(z.string().uuid()).optional(),
+  tagIds: z.array(z.string().min(1)).optional(),
   attachments: z.array(attachmentSchema).optional(),
 })
 
@@ -49,7 +49,7 @@ export const updateArticleSchema = z.object({
   title: z.string().min(1).max(30).optional(),
   content: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'PRIVATE']).optional(),
-  tagIds: z.array(z.string().uuid()).optional(),
+  tagIds: z.array(z.string().min(1)).optional(),
   attachments: z.array(attachmentSchema).optional(),
 })
 

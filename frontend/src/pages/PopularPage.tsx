@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../api/client.ts'
 import type { ArticleSummary } from '../types/index.ts'
 import UserAvatar from '../components/atoms/UserAvatar.tsx'
@@ -10,13 +10,15 @@ const PAGE_SIZE = 10
 
 export default function PopularPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Math.max(1, Number(searchParams.get('page')) || 1)
+
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
 
-  const fetchArticles = useCallback(async (p = 1) => {
+  const fetchArticles = useCallback(async (p: number) => {
     setLoading(true)
     setError('')
     try {
@@ -27,7 +29,6 @@ export default function PopularPage() {
       }>(`/articles?page=${p}&pageSize=${PAGE_SIZE}&sort=popular`)
       setArticles(res.articles)
       setTotal(res.total)
-      setPage(p)
     } catch {
       setError('記事の取得に失敗しました。')
     } finally {
@@ -36,11 +37,15 @@ export default function PopularPage() {
   }, [])
 
   useEffect(() => {
-    fetchArticles(1)
-  }, [fetchArticles])
+    fetchArticles(currentPage)
+  }, [fetchArticles, currentPage])
+
+  const handlePageChange = (p: number) => {
+    setSearchParams(p > 1 ? { page: String(p) } : {})
+  }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
-  const rankOffset = (page - 1) * PAGE_SIZE
+  const rankOffset = (currentPage - 1) * PAGE_SIZE
 
   return (
     <div>
@@ -67,7 +72,7 @@ export default function PopularPage() {
                 <div
                   key={article.id}
                   className="article-card"
-                  onClick={() => navigate(`/articles/${article.id}`)}
+                  onClick={() => navigate(`/articles/${article.id}`, { state: { fromLabel: '人気記事に戻る' } })}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
                     <span style={{
@@ -111,7 +116,7 @@ export default function PopularPage() {
           </div>
 
           {totalPages > 1 && (
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={fetchArticles} />
+            <Pagination page={currentPage} pageSize={PAGE_SIZE} total={total} onPageChange={handlePageChange} />
           )}
         </>
       )}
